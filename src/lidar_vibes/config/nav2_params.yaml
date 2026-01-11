@@ -126,8 +126,7 @@ controller_server:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.03 # distance_moved 
       movement_time_allowance: 15.0 # time_go
-      # вот тут я меняла время было 2 минуты, поставила 15 сек
-
+      
     # Goal checker parameters
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"

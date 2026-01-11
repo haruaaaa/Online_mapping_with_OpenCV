@@ -1,0 +1,83 @@
+Panels:
+  - Class: rviz_common/Displays
+    Help Height: 78
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options
+        - /Status
+      Splitter Ratio: 0.5
+
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 20
+      Color: 160;160;160
+      Line Style:
+        Value: Lines
+      Alpha: 0.5
+      Reference Frame: base_link
+
+    - Class: rviz_default_plugins/Pose
+      Name: Goal Pose
+      Enabled: true
+      Topic: /goal_pose
+      Color: 255; 0; 0  
+
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Show Axes: true
+      Show Names: true
+      Marker Scale: 0.2
+
+    - Class: rviz_default_plugins/Map
+      Name: Map
+      Enabled: true
+      Alpha: 0.7
+      Topic: /map
+      Color Scheme: map
+      Draw Behind: false
+      Use Timestamp: false
+
+  Enabled: true
+  Global Options:
+    Background Color: 48;48;48
+    Fixed Frame: map
+
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+      Name: Interact
+    - Class: rviz_default_plugins/MoveCamera
+      Name: Move Camera
+    - Class: rviz_default_plugins/Select
+      Name: Select
+    - Class: rviz_default_plugins/Measure
+      Name: Measure
+
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Orbit (default)
+      Distance: 1.5
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Pitch: 0.785
+      Yaw: 0.785
+
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 900
+  Width: 1600
+  X: 100
+  Y: 100
+  Hide Left Dock: true     # скрываем левую панель (Selection)
+  Hide Right Dock: true    # скрываем правые панели (Views и Tool Properties)

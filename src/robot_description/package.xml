@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robot_description</name>
+  <version>0.0.1</version>
+  <description>URDF and RViz visualization for LEGO differential drive robot</description>
+  <maintainer email="you@example.com">Kirill</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>xacro</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>rviz2</depend>
+  <depend>joint_state_publisher</depend>
+  <depend>joint_state_publisher_gui</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -15,7 +15,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, TwistStamped
 from sensor_msgs.msg import PointCloud2, LaserScan
 from tf2_ros import Buffer, TransformListener
 
@@ -80,7 +80,7 @@ class LivoxToLaserScan(Node):
 
         # Kobuki velocity bridge (/cmd_vel -> /commands/velocity)
         self.cmd_vel_sub = self.create_subscription(
-            Twist, '/cmd_vel', self.cmd_vel_cb, 10
+            TwistStamped, '/cmd_vel', self.cmd_vel_cb, 10
         )
         self.commands_velocity_pub = self.create_publisher(
             Twist, '/commands/velocity', 10
@@ -92,9 +92,9 @@ class LivoxToLaserScan(Node):
             f"Bridge: /cmd_vel -> /commands/velocity"
         )
 
-    def cmd_vel_cb(self, msg: Twist):
-        # Relay Nav2 commands directly to Kobuki base driver
-        self.commands_velocity_pub.publish(msg)
+    def cmd_vel_cb(self, msg):
+        twist_cmd = msg.twist if hasattr(msg, 'twist') else msg
+        self.commands_velocity_pub.publish(twist_cmd)
 
     def pointcloud_callback(self, msg: PointCloud2):
         if msg.width == 0 or len(msg.data) == 0:

@@ -42,9 +42,11 @@ class LivoxToLaserScan(Node):
         self.declare_parameter('max_height_base', 0.60)  # In base_link: below maze top
         self.declare_parameter('min_height_lidar', -0.12) # In lidar frame fallback
         self.declare_parameter('max_height_lidar', 0.35)  # In lidar frame fallback
-        self.declare_parameter('min_range', 0.25)        # Clears TurtleBot 2 chassis (radius 0.177m)
+        self.declare_parameter('min_range', 0.18)        # Clears TurtleBot 2 chassis (radius 0.177m)
         self.declare_parameter('max_range', 8.0)         # Max effective maze range
         self.declare_parameter('num_rays', 720)          # 0.5 deg angular resolution (360 deg)
+        self.declare_parameter('min_points_per_bin', 2)  # Reject single-point dust/glare outliers
+        self.declare_parameter('filter_outliers', True)   # Remove isolated single-ray floating specks
 
         self.cloud_topic = self.get_parameter('cloud_topic').value
         self.scan_topic = self.get_parameter('scan_topic').value
@@ -57,6 +59,8 @@ class LivoxToLaserScan(Node):
         self.min_range = float(self.get_parameter('min_range').value)
         self.max_range = float(self.get_parameter('max_range').value)
         self.num_rays = int(self.get_parameter('num_rays').value)
+        self.min_points_per_bin = int(self.get_parameter('min_points_per_bin').value)
+        self.filter_outliers = bool(self.get_parameter('filter_outliers').value)
 
         # Precompute scan angles and parameters
         self.angle_min = -math.pi
@@ -109,15 +113,6 @@ class LivoxToLaserScan(Node):
         x = np.frombuffer(raw[:, 0:4].copy(), dtype=np.float32)
         y = np.frombuffer(raw[:, 4:8].copy(), dtype=np.float32)
         z = np.frombuffer(raw[:, 8:12].copy(), dtype=np.float32)
-
-        # Filter out NaN/Inf points prior to coordinate transformation
-        finite_mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(z)
-        if not np.any(finite_mask):
-            return
-
-        x = x[finite_mask]
-        y = y[finite_mask]
-        z = z[finite_mask]
 
         # Try to resolve TF from lidar to base_link once (fixed mount)
         if self.lidar_rot is None:
@@ -176,6 +171,21 @@ class LivoxToLaserScan(Node):
 
         ranges = np.full(self.num_rays, np.inf, dtype=np.float32)
         np.minimum.at(ranges, bins, rv)
+
+        # Filter out sparse single-point airborne dust / reflections
+        if self.min_points_per_bin > 1:
+            counts = np.bincount(bins, minlength=self.num_rays)
+            ranges[counts < self.min_points_per_bin] = np.inf
+
+        # Filter isolated single-ray spikes (airborne noise / phantom spots)
+        if self.filter_outliers:
+            valid = np.isfinite(ranges)
+            prev_r = np.roll(ranges, 1)
+            next_r = np.roll(ranges, -1)
+            has_left = np.isfinite(prev_r) & (np.abs(ranges - prev_r) < 0.25)
+            has_right = np.isfinite(next_r) & (np.abs(ranges - next_r) < 0.25)
+            isolated = valid & (~has_left) & (~has_right)
+            ranges[isolated] = np.inf
 
         # 5. Populate and publish LaserScan message
         scan_msg = LaserScan()

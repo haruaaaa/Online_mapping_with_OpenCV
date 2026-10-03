@@ -42,7 +42,7 @@ class LivoxToLaserScan(Node):
         self.declare_parameter('max_height_base', 0.60)  # In base_link: below maze top
         self.declare_parameter('min_height_lidar', -0.12) # In lidar frame fallback
         self.declare_parameter('max_height_lidar', 0.35)  # In lidar frame fallback
-        self.declare_parameter('min_range', 0.18)        # Clears TurtleBot 2 chassis (radius 0.177m)
+        self.declare_parameter('min_range', 0.25)        # Clears TurtleBot 2 chassis (radius 0.177m)
         self.declare_parameter('max_range', 8.0)         # Max effective maze range
         self.declare_parameter('num_rays', 720)          # 0.5 deg angular resolution (360 deg)
 
@@ -109,6 +109,15 @@ class LivoxToLaserScan(Node):
         x = np.frombuffer(raw[:, 0:4].copy(), dtype=np.float32)
         y = np.frombuffer(raw[:, 4:8].copy(), dtype=np.float32)
         z = np.frombuffer(raw[:, 8:12].copy(), dtype=np.float32)
+
+        # Filter out NaN/Inf points prior to coordinate transformation
+        finite_mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(z)
+        if not np.any(finite_mask):
+            return
+
+        x = x[finite_mask]
+        y = y[finite_mask]
+        z = z[finite_mask]
 
         # Try to resolve TF from lidar to base_link once (fixed mount)
         if self.lidar_rot is None:
